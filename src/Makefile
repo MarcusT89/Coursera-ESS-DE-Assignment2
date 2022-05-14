@@ -21,21 +21,66 @@
 #      <Put a description of the supported Overrides here
 #
 #------------------------------------------------------------------------------
-include sources.mk
+# include sources.mk <----
+# Add your Source files to this variable
+SOURCES = main.c \
+		memory.c \
+
+
+# Add your include paths to this variable
+INCLUDES = 
+# <-------
 
 # Platform Overrides
-PLATFORM = 
+PLATFORM = HOST \
+		MSP432
 
 # Architectures Specific Flags
 LINKER_FILE = 
-CPU = 
-ARCH = 
-SPECS = 
+CPU = cortex-m4
+ARCH = armv7e-m
+SPECS = nosys.specs
 
 # Compiler Flags and Defines
+TARGET = c1m2
 CC = 
 LD = 
 LDFLAGS = 
 CFLAGS = 
 CPPFLAGs = 
+
+# **************
+# **************
+
+ifeq ($(PLATFORM),HOST)
+	CC = gcc
+	
+else
+	CC = arm-none-eabi-gcc
+	CFLAGFS = -mcpu=$(CPU) -m$(ARCH) --specs=$(SPECS) -Wall
+endif
+
+OBJS = $(SRCS:.c=.o)
+
+%.o : %.c
+	$(CC) -c $< $(CFLAGS) -o $@
+
+%.i : %.c
+	$(CC) -c $< $(CFLAGS) -o $@
+
+%.asm : %.c
+	$(CC) -c $< $(CFLAGS) -o $@
+
+.PHONY: build
+build: all
+
+.PHONY: all
+all: $(TARGET).out
+
+$(TARGET).out: $(OBJS)
+	$(CC) $(OBJS) $(CFLAGS) $(LDFLAGS) -o $@
+
+.PHONY: clean
+clean:
+	rm -f $(OBJS) $(TARGET).out $(TARGET).map $(TARGET).asm
 
