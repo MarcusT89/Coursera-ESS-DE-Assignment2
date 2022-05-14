@@ -21,15 +21,8 @@
 #      <Put a description of the supported Overrides here
 #
 #------------------------------------------------------------------------------
-# include sources.mk <----
-# Add your Source files to this variable
-SOURCES = main.c \
-		memory.c \
 
-
-# Add your include paths to this variable
-INCLUDES = 
-# <-------
+include sources.mk
 
 # Platform Overrides
 PLATFORM = HOST 
@@ -37,6 +30,7 @@ PLATFORM = HOST
 # General Flags
 GEN_CFLAGS = -Wall Werror -g -O0 -std=c99
 
+TARGET = c1m2
 
 # Architectures Specific Flags
 LINKER_FILE = 
@@ -44,22 +38,28 @@ CPU = cortex-m4
 ARCH = armv7e-m
 SPECS = nosys.specs
 
-# Compiler Flags and Defines
-TARGET = c1m2
-CC = 
-LD = 
-LDFLAGS = 
-CFLAGS = 
-CPPFLAGs = 
-
-# **************
-# **************
 
 ifeq ($(PLATFORM),MSP432)
+	
+	# Architectures Specific Flags
+	LINKER_FILE = msp432p401r.lds
+	CPU = cortex-m4
+	ARCH = armv7e-m
+	SPECS = nosys.specs
+	ARM_FLAGS = -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16
+	
+	# Compiler Flags and Defines
 	CC = arm-none-eabi-gcc
-	CFLAGFS = -mcpu=$(CPU) -m$(ARCH) --specs=$(SPECS) 
+	LD = arm-none-eabi-ld
+	CFLAGFS = $(GEN_CFLAGS) -mcpu=$(CPU) -march=$(ARCH) --specs=$(SPECS) $(ARM_FLAGS)
+	LDFLAGS = 
+	CPPFLAGS = 
+	
+	OBJDUMP = arm-none-eabi-objdump
+	SIZE = arm-none-eabi-size
 	
 else
+	# Compiler Flags and Defines
 	CC = gcc
 	LD = ld
 endif
