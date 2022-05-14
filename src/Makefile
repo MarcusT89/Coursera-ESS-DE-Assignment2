@@ -32,8 +32,11 @@ INCLUDES =
 # <-------
 
 # Platform Overrides
-PLATFORM = HOST \
-		MSP432
+PLATFORM = HOST 
+
+# General Flags
+GEN_CFLAGS = -Wall Werror -g -O0 -std=c99
+
 
 # Architectures Specific Flags
 LINKER_FILE = 
@@ -52,24 +55,27 @@ CPPFLAGs =
 # **************
 # **************
 
-ifeq ($(PLATFORM),HOST)
-	CC = gcc
+ifeq ($(PLATFORM),MSP432)
+	CC = arm-none-eabi-gcc
+	CFLAGFS = -mcpu=$(CPU) -m$(ARCH) --specs=$(SPECS) 
 	
 else
-	CC = arm-none-eabi-gcc
-	CFLAGFS = -mcpu=$(CPU) -m$(ARCH) --specs=$(SPECS) -Wall
+	CC = gcc
+	LD = ld
 endif
 
-OBJS = $(SRCS:.c=.o)
+OBJS = $(SOURCES:.c=.o)
+PREP = $(SOURCES:.c=.i)
+ASM = $(SOURCES:.c=.asm)
 
 %.o : %.c
 	$(CC) -c $< $(CFLAGS) -o $@
 
 %.i : %.c
-	$(CC) -c $< $(CFLAGS) -o $@
+	$(CC) -c $< $(CFLAGS) -o $@ <---- error
 
 %.asm : %.c
-	$(CC) -c $< $(CFLAGS) -o $@
+	$(CC) -c $< $(CFLAGS) -o $@ <---- error
 
 .PHONY: build
 build: all
@@ -82,5 +88,5 @@ $(TARGET).out: $(OBJS)
 
 .PHONY: clean
 clean:
-	rm -f $(OBJS) $(TARGET).out $(TARGET).map $(TARGET).asm
+	rm -f $(OBJS) $(PREP) $(ASM) $(TARGET).out $(TARGET).map 
 
