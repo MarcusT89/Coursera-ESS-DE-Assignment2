@@ -27,7 +27,7 @@ include sources.mk
 # Platform Overrides
 PLATFORM = HOST 
 
-# General Flags
+# General Flags / VAriables
 GEN_CFLAGS = -Wall Werror -g -O0 -std=c99
 
 TARGET = c1m2
@@ -41,28 +41,29 @@ SPECS = nosys.specs
 
 ifeq ($(PLATFORM),MSP432)
 	
-	# Architectures Specific Flags
+# Architectures Specific Flags
 	LINKER_FILE = msp432p401r.lds
 	CPU = cortex-m4
 	ARCH = armv7e-m
 	SPECS = nosys.specs
 	ARM_FLAGS = -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16
 	
-	# Compiler Flags and Defines
+# Compiler Flags and Defines
 	CC = arm-none-eabi-gcc
 	LD = arm-none-eabi-ld
 	CFLAGFS = $(GEN_CFLAGS) -mcpu=$(CPU) -march=$(ARCH) --specs=$(SPECS) $(ARM_FLAGS)
-	LDFLAGS = 
+	LDFLAGS = -Wl, -T -L ../$(LINKER_FILE) -WL, Map=$(TARGET).map
 	CPPFLAGS = 
 	
 	OBJDUMP = arm-none-eabi-objdump
 	SIZE = arm-none-eabi-size
 	
-else
-	# Compiler Flags and Defines
+else 
+# Compiler Flags and Defines
 	CC = gcc
 	LD = ld
 endif
+
 
 OBJS = $(SOURCES:.c=.o)
 PREP = $(SOURCES:.c=.i)
@@ -72,7 +73,7 @@ ASM = $(SOURCES:.c=.asm)
 	$(CC) -c $< $(CFLAGS) -o $@
 
 %.i : %.c
-	$(CC) -c $< $(CFLAGS) -o $@ <---- error
+	$(CC) $(CFLAGS) -E $< -o $@ 
 
 %.asm : %.c
 	$(CC) -c $< $(CFLAGS) -o $@ <---- error
