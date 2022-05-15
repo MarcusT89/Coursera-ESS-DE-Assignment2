@@ -52,16 +52,23 @@ ifeq ($(PLATFORM),MSP432)
 	CC = arm-none-eabi-gcc
 	LD = arm-none-eabi-ld
 	CFLAGFS = $(GEN_CFLAGS) -mcpu=$(CPU) -march=$(ARCH) --specs=$(SPECS) $(ARM_FLAGS)
-	LDFLAGS = -Wl, -T -L ../$(LINKER_FILE) -WL, Map=$(TARGET).map
-	CPPFLAGS = 
+	LDFLAGS = -Wl, -Map=$(TARGET).map -T ../$(LINKER_FILE)
+	CPPFLAGS = -DMSP432 $(INCLUDES)
 	
 	OBJDUMP = arm-none-eabi-objdump
 	SIZE = arm-none-eabi-size
 	
-else 
+else ifeq ($(PLATFORM),HOST)
+
 # Compiler Flags and Defines
 	CC = gcc
 	LD = ld
+	CPPFLAGS = -DHOST $(INCLUDES)
+	OBJDUMP = arm-none-eabi-objdump
+	SIZE = arm-none-eabi-size
+
+else 
+	@echo "Please specify the platform, -DHOST or -DMSP432"
 endif
 
 
@@ -70,13 +77,13 @@ PREP = $(SOURCES:.c=.i)
 ASM = $(SOURCES:.c=.asm)
 
 %.o : %.c
-	$(CC) -c $< $(CFLAGS) -o $@
+	$(CC) $(CPPFLAGS) -c $< $(CFLAGS) -o $@
 
 %.i : %.c
 	$(CC) $(CFLAGS) -E $< -o $@ 
 
 %.asm : %.c
-	$(CC) -c $< $(CFLAGS) -o $@ <---- error
+	$(CC) $(CFLAGS) -S $< -o $@  <---- ??
 
 .PHONY: build
 build: all
