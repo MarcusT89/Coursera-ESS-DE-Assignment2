@@ -32,15 +32,8 @@ GEN_CFLAGS = -Wall Werror -g -O0 -std=c99
 
 TARGET = c1m2
 
-# Architectures Specific Flags
-LINKER_FILE = 
-CPU = cortex-m4
-ARCH = armv7e-m
-SPECS = nosys.specs
-
-
 ifeq ($(PLATFORM),MSP432)
-	
+# MSP432 Flags	
 # Architectures Specific Flags
 	LINKER_FILE = msp432p401r.lds
 	CPU = cortex-m4
@@ -52,23 +45,22 @@ ifeq ($(PLATFORM),MSP432)
 	CC = arm-none-eabi-gcc
 	LD = arm-none-eabi-ld
 	CFLAGFS = $(GEN_CFLAGS) -mcpu=$(CPU) -march=$(ARCH) --specs=$(SPECS) $(ARM_FLAGS)
-	LDFLAGS = -Wl, -Map=$(TARGET).map -T ../$(LINKER_FILE)
+	LDFLAGS = -Wl,-Map=$(TARGET).map -T ../$(LINKER_FILE)
 	CPPFLAGS = -DMSP432 $(INCLUDES)
 	
 	OBJDUMP = arm-none-eabi-objdump
 	SIZE = arm-none-eabi-size
 	
-else ifeq ($(PLATFORM),HOST)
-
+else 
+# HOST Flags
 # Compiler Flags and Defines
 	CC = gcc
 	LD = ld
+	LDFLAGS = -Wl,-Map=$(TARGET).map
 	CPPFLAGS = -DHOST $(INCLUDES)
-	OBJDUMP = arm-none-eabi-objdump
-	SIZE = arm-none-eabi-size
+	OBJDUMP = objdump
+	SIZE = size
 
-else 
-	@echo "Please specify the platform, -DHOST or -DMSP432"
 endif
 
 
@@ -80,21 +72,28 @@ ASM = $(SOURCES:.c=.asm)
 	$(CC) $(CPPFLAGS) -c $< $(CFLAGS) -o $@
 
 %.i : %.c
-	$(CC) $(CFLAGS) -E $< -o $@ 
+	$(CC) $(CPPFLAGS) $(CFLAGS) -E $< -o $@ 
 
 %.asm : %.c
-	$(CC) $(CFLAGS) -S $< -o $@  <---- ??
+	$(CC) $(CFLAGS) $(CPPFLAGS) -S $< -o $@
+	$(CC) $(OBJS) -o $(TARGET).out $(CFLAGS) $(LDFLAGS) $(CPPFLAGS)
+	$(OBJDUMP) -S $(TARGET).out -D > dump.txt
+
 
 .PHONY: build
 build: all
 
-.PHONY: all
+.PHONY: 
 all: $(TARGET).out
 
 $(TARGET).out: $(OBJS)
-	$(CC) $(OBJS) $(CFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(OBJS) -o $@ $(CFLAGS) $(LDFLAGS) $(CPPFLAGS)
+
+#.PHONY: compile-all
+#compile-all: $(OBJS)
+
 
 .PHONY: clean
 clean:
-	rm -f $(OBJS) $(PREP) $(ASM) $(TARGET).out $(TARGET).map 
+	rm -f $(OBJS) $(PREP) $(ASM) $(TARGET).out $(TARGET).map dump.txt
 

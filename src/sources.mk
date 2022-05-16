@@ -9,28 +9,25 @@
 #
 #*****************************************************************************
 
-# General Files
-GEN_SOURCES = main.c \
-            memory.c
-            
-GEN_INCLUDES = -I ../include/common           
 
 
 #Platform Variables
 ifeq ($(PLATFORM),MSP432)
-    SOURCES = GEN_SOURCES \
-              interrupts_msp432p401r_gcc.c \
-              startup_msp432p401r_gcc.c \
-              system_msp432p401r.c 
+    SOURCES =   main.c \
+                memory.c \
+                interrupts_msp432p401r_gcc.c \
+                startup_msp432p401r_gcc.c \
+                system_msp432p401r.c 
 
-    INCLUDES = GEN_INCLUDES \
+    INCLUDES = -I ../include/common  \
                -I ../include/CMSIS \
                -I ../include/msp432
                
 else
-    SOURCES = GEN_SOURCES
+    SOURCES = main.c \
+                memory.c \
 
-    INCLUDES = GEN_INCLUDES
+    INCLUDES = -I ../include/common  
 
 endif
 
