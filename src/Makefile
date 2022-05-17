@@ -67,6 +67,7 @@ endif
 OBJS = $(SOURCES:.c=.o)
 PREP = $(SOURCES:.c=.i)
 ASM = $(SOURCES:.c=.asm)
+DEPS = $(SOURCES:.c=.d)
 
 %.o : %.c
 	$(CC) $(CPPFLAGS) -c $< $(CFLAGS) -o $@
@@ -74,26 +75,26 @@ ASM = $(SOURCES:.c=.asm)
 %.i : %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -E $< -o $@ 
 
-%.asm : %.c
+%.d : %.c
+	$(CC) -E -M $< -o $@ $(CPPFLAGS)
+
+%.asm : %.c | $(OBJS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) -S $< -o $@
 	$(CC) $(OBJS) -o $(TARGET).out $(CFLAGS) $(LDFLAGS) $(CPPFLAGS)
-	$(OBJDUMP) -S $(TARGET).out -D > dump.txt
+	$(OBJDUMP) -S $(TARGET).out -D > objdump.txt
+	rm -f $(OBJS) $(TARGET).map
 
-
-.PHONY: build
-build: all
-
-.PHONY: 
-all: $(TARGET).out
-
-$(TARGET).out: $(OBJS)
+$(TARGET).out: $(OBJS) $(DEPS)
 	$(CC) $(OBJS) -o $@ $(CFLAGS) $(LDFLAGS) $(CPPFLAGS)
-
-#.PHONY: compile-all
-#compile-all: $(OBJS)
+	$(SIZE) -Atd $@ > size.txt
 
 
-.PHONY: clean
+.PHONY: build compile-all clean
+
+build: $(TARGET).out
+
+compile-all: $(OBJS)
+
 clean:
-	rm -f $(OBJS) $(PREP) $(ASM) $(TARGET).out $(TARGET).map dump.txt
+	rm -f $(OBJS) $(PREP) $(ASM) $(DEPS) $(TARGET).out $(TARGET).map objdump.txt size.txt
 
